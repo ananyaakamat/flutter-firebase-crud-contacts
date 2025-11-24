@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Rules for contacts collection
+    match /contacts/{contactId} {
+      // Allow reads for all users (you can restrict this for authentication)
+      allow read: if true;
+      
+      // Allow writes only if the data is valid
+      allow write: if validateContact(request.resource.data);
+      
+      // Allow deletes for all users (you can restrict this for authentication)
+      allow delete: if true;
+    }
+  }
+  
+  // Validation function for contact data
+  function validateContact(data) {
+    return data.keys().hasAll(['name', 'contactNumber', 'createdAt', 'updatedAt', 'createdBy']) &&
+           data.keys().hasOnly(['name', 'contactNumber', 'createdAt', 'updatedAt', 'createdBy']) &&
+           // Name validation: string, max 40 chars, letters and spaces only
+           data.name is string &&
+           data.name.size() > 0 &&
+           data.name.size() <= 40 &&
+           data.name.matches('[A-Za-z ]+') &&
+           // Contact number validation: string, exactly 10 digits
+           data.contactNumber is string &&
+           data.contactNumber.size() == 10 &&
+           data.contactNumber.matches('[0-9]{10}') &&
+           // Timestamps should be server timestamps or valid timestamps
+           data.createdAt is timestamp &&
+           data.updatedAt is timestamp &&
+           // CreatedBy should be a string
+           data.createdBy is string;
+  }
+}
