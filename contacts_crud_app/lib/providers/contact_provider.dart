@@ -8,8 +8,9 @@ class ContactProvider extends ChangeNotifier {
   List<Contact> _contacts = [];
   List<Contact> _filteredContacts = [];
   String _searchQuery = '';
-  bool _isLoading = false;
+  bool _isLoading = true; // Start with true to prevent flicker
   String? _error;
+  bool _hasInitialized = false;
 
   // Getters
   List<Contact> get contacts => _filteredContacts;
@@ -18,6 +19,7 @@ class ContactProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get hasContacts => _contacts.isNotEmpty;
+  bool get hasInitialized => _hasInitialized;
 
   // Initialize and listen to contacts stream
   void init() {
@@ -31,11 +33,13 @@ class ContactProvider extends ChangeNotifier {
         _filterContacts();
         _isLoading = false;
         _error = null;
+        _hasInitialized = true;
         notifyListeners();
       },
       onError: (error) {
         _error = 'Failed to load contacts: $error';
         _isLoading = false;
+        _hasInitialized = true;
         notifyListeners();
       },
     );

@@ -1,11 +1,11 @@
 {
-    "name": "contacts_crud_app",
-    "short_name": "contacts_crud_app",
+    "name": "CRUD Firebase",
+    "short_name": "CRUD Firebase",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#hexcode",
-    "theme_color": "#hexcode",
-    "description": "A new Flutter project.",
+    "background_color": "#1976d2",
+    "theme_color": "#1976d2",
+    "description": "Contact management application with Firebase real-time sync.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

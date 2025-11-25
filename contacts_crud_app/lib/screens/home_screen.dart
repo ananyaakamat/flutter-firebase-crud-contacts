@@ -41,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             const SizedBox(width: 12),
-            const Text('Contacts Manager'),
+            const Text('CRUD Firebase'),
           ],
         ),
         elevation: 2,
@@ -74,6 +74,13 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: Consumer<ContactProvider>(
               builder: (context, provider, child) {
+                // Show loading spinner during initial load
+                if (!provider.hasInitialized) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+
                 if (provider.error != null && !provider.hasContacts) {
                   return ErrorWidget(
                     error: provider.error!,
@@ -94,6 +101,11 @@ class _HomeScreenState extends State<HomeScreen> {
       // Floating Action Button (only shown when no contacts exist or as primary action)
       floatingActionButton: Consumer<ContactProvider>(
         builder: (context, provider, child) {
+          // Don't show FAB during initial load
+          if (!provider.hasInitialized) {
+            return const SizedBox.shrink();
+          }
+
           // Show FAB prominently when no contacts exist
           if (!provider.hasContacts) {
             return FloatingActionButton.extended(
