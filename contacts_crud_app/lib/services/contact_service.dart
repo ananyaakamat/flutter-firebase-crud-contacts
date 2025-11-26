@@ -143,7 +143,9 @@ class ContactService {
 
       return nameMatches.isNotEmpty || numberMatches.isNotEmpty;
     } catch (e) {
-      // If check fails, assume no duplicate (better UX than blocking)
+      // If check fails (e.g., offline mode), assume no duplicate to allow operation
+      // Server-side validation will handle duplicates during sync
+      debugPrint('Duplicate check failed (likely offline): $e');
       return false;
     }
   }
