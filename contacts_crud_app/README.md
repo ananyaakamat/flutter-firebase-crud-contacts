@@ -15,6 +15,7 @@ A modern Flutter application for managing contacts with real-time synchronizatio
 - ✅ **Real-time Sync** - Changes are synchronized across all devices instantly
 - ✅ **Search & Filter** - Find contacts quickly with live search functionality
 - ✅ **Offline Support** - Works offline with Firebase local persistence
+- ✅ **Offline Cache + Auto Sync** - Full offline functionality with automatic synchronization
 
 ### User Experience
 
@@ -25,6 +26,10 @@ A modern Flutter application for managing contacts with real-time synchronizatio
 - 🌐 **Multi-platform** - Runs on Android, iOS, Web, Windows, and macOS
 - 🔄 **Auto-refresh** - Automatic updates when data changes
 - 💾 **Persistent Storage** - Data saved securely in Firebase Firestore
+- 📡 **Offline-First Design** - Complete CRUD operations work without internet connection
+- 🔄 **Automatic Sync** - Seamless data synchronization when connectivity returns
+- 🟡 **Pending Status** - Visual indicators for operations awaiting sync
+- 🌐 **Network Awareness** - Real-time online/offline status detection
 
 ## 🚀 Live Demo
 
@@ -54,6 +59,8 @@ A modern Flutter application for managing contacts with real-time synchronizatio
 - **UI Library**: Material Design 3
 - **State Management**: Provider Pattern
 - **Form Handling**: Flutter Form Builder
+- **Network Detection**: connectivity_plus package
+- **Offline Persistence**: Firebase Firestore offline cache
 
 ### Backend
 
@@ -98,7 +105,8 @@ lib/
 ├── screens/               # App screens
 │   └── home_screen.dart   # Main application screen
 ├── services/              # Business logic
-│   └── contact_service.dart   # Firestore CRUD operations
+│   ├── contact_service.dart   # Firestore CRUD operations
+│   └── network_service.dart   # Online/offline status detection
 ├── widgets/               # Reusable UI components
 │   ├── contact_form_dialog.dart   # Add/Edit contact form
 │   ├── contact_list_widget.dart   # Responsive contact display
@@ -159,6 +167,129 @@ class Contact {
 }
 ```
 
+## 📡 Offline Functionality
+
+### Complete Offline Support
+
+The app implements comprehensive offline functionality using Firebase Firestore's offline persistence with automatic synchronization:
+
+#### Core Offline Features
+
+- ✅ **Full CRUD Operations Offline** - Create, read, update, and delete contacts without internet
+- ✅ **Local Cache Storage** - All data cached locally for instant access
+- ✅ **Queued Writes** - Offline operations automatically queued for sync
+- ✅ **Immediate UI Updates** - Changes appear instantly in the UI
+- ✅ **Automatic Sync** - Operations sync automatically when connectivity returns
+- ✅ **Real-time Conflict Resolution** - Server data takes precedence during sync
+- ✅ **Visual Status Indicators** - Clear feedback for sync status
+
+#### Technical Implementation
+
+**Offline Persistence:**
+
+```dart
+// Enabled at app initialization
+FirebaseFirestore.instance.settings = const Settings(
+  persistenceEnabled: true,
+);
+```
+
+**Fire-and-Forget Operations:**
+
+```dart
+// Operations don't wait for server response
+unawaited(_contactService.createContact(name, contactNumber));
+// Dialog closes immediately, queues operation locally
+```
+
+**Real-time Sync Detection:**
+
+```dart
+// Snapshots include metadata for pending writes
+.snapshots(includeMetadataChanges: true)
+contact.pending = doc.metadata.hasPendingWrites;
+```
+
+#### User Experience
+
+**Online State:**
+
+- All operations complete normally
+- Real-time updates across devices
+- Immediate validation and feedback
+
+**Offline State:**
+
+- Orange "You are offline" banner appears
+- All CRUD operations work immediately
+- Orange sync icons appear on contacts with pending changes
+- Dialog boxes close instantly without waiting for server
+- Data persists locally and syncs when online
+
+**Back Online:**
+
+- Offline banner disappears automatically
+- Pending changes sync to cloud Firestore
+- Sync indicators disappear after successful upload
+- Real-time updates resume across all devices
+
+#### Network Status Detection
+
+```dart
+class NetworkService {
+  static Stream<bool> get onStatusChanged;
+  static Future<void> init();
+}
+
+// Usage in UI
+Consumer<ContactProvider>(
+  builder: (context, provider, child) {
+    if (!provider.isOnline) {
+      return OfflineBanner(); // Show offline indicator
+    }
+    return SizedBox.shrink();
+  },
+)
+```
+
+#### Visual Feedback
+
+**Offline Banner:**
+
+- Displayed prominently when device is offline
+- Orange background with cloud-off icon
+- Clear message: "You are offline. Changes will sync when connection is restored."
+
+**Pending Sync Indicators:**
+
+- Orange sync icons on contacts with pending writes
+- Tooltip shows "Syncing changes..." message
+- Visible in both list and table views
+- Automatically disappear after successful sync
+
+#### Supported Platforms
+
+- **Android**: Full offline support with local SQLite cache
+- **Web**: IndexedDB for local storage and queued operations
+- **iOS**: Core Data for local persistence (when deployed)
+- **Desktop**: SQLite for local caching
+
+#### Data Consistency
+
+**Conflict Resolution:**
+
+- Server data always takes precedence
+- Local changes merge with server updates
+- Timestamps used for conflict detection
+- No data loss during sync process
+
+**Validation:**
+
+- Client-side validation for immediate feedback
+- Server-side validation during sync
+- Duplicate detection handled gracefully
+- Invalid operations logged but don't block UI
+
 ## 🔧 Installation & Setup
 
 ### Prerequisites
@@ -209,6 +340,14 @@ class Contact {
 ```bash
 # Install Flutter dependencies
 flutter pub get
+
+# Key dependencies installed:
+# - firebase_core: ^3.15.2          # Firebase initialization
+# - cloud_firestore: ^5.6.12       # Database with offline support
+# - provider: ^6.1.2               # State management
+# - connectivity_plus: ^4.0.0      # Network status detection
+# - flutter_form_builder: ^9.4.1   # Form handling
+# - intl: ^0.19.0                  # Date formatting
 
 # Generate launcher icons
 flutter pub run flutter_launcher_icons
@@ -288,6 +427,9 @@ flutter test test/contact_test.dart
 - ✅ Phone number validation (format, uniqueness)
 - ✅ Form submission with invalid data
 - ✅ CRUD operations success/failure scenarios
+- ✅ Offline operation handling and sync behavior
+- ✅ Network status detection accuracy
+- ✅ Pending write indicators and visual feedback
 
 ## 🏗 Build & Deployment
 
@@ -422,10 +564,11 @@ void searchContacts(String query) {
 
 ### Firebase Optimizations
 
-- **Local Persistence**: Offline data caching
-- **Real-time Listeners**: Efficient data synchronization
-- **Optimistic Updates**: Immediate UI feedback
+- **Local Persistence**: Offline data caching with automatic sync
+- **Real-time Listeners**: Efficient data synchronization with metadata changes
+- **Optimistic Updates**: Immediate UI feedback without waiting for server
 - **Batch Operations**: Efficient multi-document operations
+- **Fire-and-Forget Pattern**: Operations queued locally, dialogs close instantly
 
 ### Web Performance
 
@@ -573,6 +716,7 @@ For issues, questions, or contributions:
 - [ ] **Contact Sharing**: Share contact information
 - [ ] **Internationalization**: Multi-language support
 - [ ] **Push Notifications**: Contact update notifications
+- [ ] **Enhanced Offline Features**: Conflict resolution UI and sync status details
 
 ### Technical Improvements
 
@@ -587,7 +731,7 @@ For issues, questions, or contributions:
 
 **Built with ❤️ using Flutter and Firebase**
 
-_Last updated: November 24, 2025_
+_Last updated: November 26, 2025_
 
 ## Quick Start Checklist
 
