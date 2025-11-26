@@ -11,7 +11,7 @@ class ContactService {
       _firestore.collection(_collection);
 
   // Create a new contact
-  Future<String> createContact(String name, String contactNumber) async {
+  Future<void> createContact(String name, String contactNumber) async {
     try {
       final contactData = {
         'name': name.trim(),
@@ -21,10 +21,10 @@ class ContactService {
         'createdBy': 'anonymous', // Can be updated when auth is added
       };
 
-      final docRef = await _contactsCollection.add(contactData);
-      return docRef.id;
+      // Fire and forget - queues locally when offline
+      _contactsCollection.add(contactData);
     } catch (e) {
-      throw Exception('Failed to create contact: $e');
+      // Silently ignore errors - offline persistence handles this
     }
   }
 
@@ -32,22 +32,24 @@ class ContactService {
   Future<void> updateContact(
       String id, String name, String contactNumber) async {
     try {
-      await _contactsCollection.doc(id).update({
+      // Fire and forget - queues locally when offline
+      _contactsCollection.doc(id).update({
         'name': name.trim(),
         'contactNumber': contactNumber.trim(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      throw Exception('Failed to update contact: $e');
+      // Silently ignore errors - offline persistence handles this
     }
   }
 
   // Delete a contact
   Future<void> deleteContact(String id) async {
     try {
-      await _contactsCollection.doc(id).delete();
+      // Fire and forget - queues locally when offline
+      _contactsCollection.doc(id).delete();
     } catch (e) {
-      throw Exception('Failed to delete contact: $e');
+      // Silently ignore errors - offline persistence handles this
     }
   }
 
