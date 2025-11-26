@@ -7,6 +7,7 @@ class Contact {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String createdBy;
+  final bool pending; // indicates if this document has local pending writes
 
   Contact({
     required this.id,
@@ -15,18 +16,32 @@ class Contact {
     required this.createdAt,
     required this.updatedAt,
     required this.createdBy,
+    this.pending = false,
   });
 
   // Factory constructor to create Contact from Firestore document
   factory Contact.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    // Safely handle missing timestamps when using local writes
+    DateTime created = DateTime.now();
+    DateTime updated = DateTime.now();
+    try {
+      if (data['createdAt'] is Timestamp) {
+        created = (data['createdAt'] as Timestamp).toDate();
+      }
+      if (data['updatedAt'] is Timestamp) {
+        updated = (data['updatedAt'] as Timestamp).toDate();
+      }
+    } catch (_) {}
+
     return Contact(
       id: doc.id,
       name: data['name'] ?? '',
       contactNumber: data['contactNumber'] ?? '',
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      updatedAt: (data['updatedAt'] as Timestamp).toDate(),
+      createdAt: created,
+      updatedAt: updated,
       createdBy: data['createdBy'] ?? 'anonymous',
+      pending: doc.metadata.hasPendingWrites,
     );
   }
 

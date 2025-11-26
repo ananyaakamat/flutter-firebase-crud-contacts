@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'providers/contact_provider.dart';
 import 'screens/home_screen.dart';
+import 'services/contact_service.dart';
+import 'services/network_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,6 +14,12 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Enable Firestore offline persistence
+  await ContactService.enableOfflinePersistence();
+
+  // Initialize network service for offline/online detection
+  await NetworkService.init();
 
   runApp(const MyApp());
 }

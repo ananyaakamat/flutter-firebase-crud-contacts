@@ -152,10 +152,25 @@ class ContactTable extends StatelessWidget {
                       .map((contact) => DataRow(
                             cells: [
                               DataCell(
-                                Text(
-                                  contact.name,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w500),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        contact.name,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w500),
+                                      ),
+                                    ),
+                                    if (contact.pending)
+                                      Tooltip(
+                                        message: 'Syncing changes...',
+                                        child: Icon(
+                                          Icons.sync,
+                                          size: 16,
+                                          color: Colors.orange.shade600,
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
                               DataCell(
@@ -251,19 +266,61 @@ class ContactCard extends StatelessWidget {
       elevation: 2,
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: CircleAvatar(
-          backgroundColor: Theme.of(context).primaryColor,
-          child: Text(
-            contact.name.isNotEmpty ? contact.name[0].toUpperCase() : '?',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
+        leading: Stack(
+          children: [
+            CircleAvatar(
+              backgroundColor: Theme.of(context).primaryColor,
+              child: Text(
+                contact.name.isNotEmpty ? contact.name[0].toUpperCase() : '?',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-          ),
+            // Show pending sync indicator
+            if (contact.pending)
+              Positioned(
+                right: 0,
+                top: 0,
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: Colors.orange,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 1,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.sync,
+                    size: 8,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+          ],
         ),
-        title: Text(
-          contact.name,
-          style: const TextStyle(fontWeight: FontWeight.w500),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                contact.name,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+            ),
+            if (contact.pending)
+              Tooltip(
+                message: 'Syncing changes...',
+                child: Icon(
+                  Icons.sync,
+                  size: 16,
+                  color: Colors.orange.shade600,
+                ),
+              ),
+          ],
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

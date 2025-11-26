@@ -68,7 +68,7 @@ class ContactService {
   Stream<List<Contact>> getContactsStream() {
     return _contactsCollection
         .orderBy('createdAt', descending: true)
-        .snapshots()
+        .snapshots(includeMetadataChanges: true)
         .map((snapshot) =>
             snapshot.docs.map((doc) => Contact.fromFirestore(doc)).toList());
   }
@@ -86,7 +86,7 @@ class ContactService {
         .orderBy('name')
         .startAt([lowerCaseQuery])
         .endAt(['$lowerCaseQuery\uf8ff'])
-        .snapshots()
+        .snapshots(includeMetadataChanges: true)
         .map((snapshot) {
           // Also filter by contact number on client side for more comprehensive search
           final contacts =

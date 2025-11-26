@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../models/contact.dart';
 import '../services/contact_service.dart';
+import '../services/network_service.dart';
 
 class ContactProvider extends ChangeNotifier {
   final ContactService _contactService = ContactService();
@@ -11,6 +14,8 @@ class ContactProvider extends ChangeNotifier {
   bool _isLoading = true; // Start with true to prevent flicker
   String? _error;
   bool _hasInitialized = false;
+  bool _isOnline = true;
+  StreamSubscription<bool>? _networkSubscription;
 
   // Getters
   List<Contact> get contacts => _filteredContacts;
@@ -20,10 +25,20 @@ class ContactProvider extends ChangeNotifier {
   String? get error => _error;
   bool get hasContacts => _contacts.isNotEmpty;
   bool get hasInitialized => _hasInitialized;
+  bool get isOnline => _isOnline;
 
   // Initialize and listen to contacts stream
   void init() {
     _listenToContacts();
+    _subscribeToNetworkStatus();
+  }
+
+  // Subscribe to network status changes
+  void _subscribeToNetworkStatus() {
+    _networkSubscription = NetworkService.onStatusChanged.listen((isOnline) {
+      _isOnline = isOnline;
+      notifyListeners();
+    });
   }
 
   void _listenToContacts() {
@@ -199,5 +214,11 @@ class ContactProvider extends ChangeNotifier {
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _networkSubscription?.cancel();
+    super.dispose();
   }
 }
