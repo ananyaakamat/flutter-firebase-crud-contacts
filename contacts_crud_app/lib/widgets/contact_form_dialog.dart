@@ -108,107 +108,147 @@ class _ContactFormDialogState extends State<ContactFormDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        width: MediaQuery.of(context).size.width > 600 ? 400 : null,
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Title
-            Text(
-              _isEditing ? 'Edit Contact' : 'Create New Contact',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-              textAlign: TextAlign.center,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Responsive dialog sizing
+        final screenWidth = MediaQuery.of(context).size.width;
+        final isLargeScreen = screenWidth > 800;
+        final isTablet = screenWidth > 600 && screenWidth <= 800;
+
+        double dialogWidth;
+        if (isLargeScreen) {
+          dialogWidth = 500; // Larger dialog for desktop
+        } else if (isTablet) {
+          dialogWidth = 450; // Medium size for tablets
+        } else {
+          dialogWidth = screenWidth * 0.9; // 90% of screen width on mobile
+        }
+
+        return Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Container(
+            width: dialogWidth,
+            constraints: BoxConstraints(
+              maxWidth: dialogWidth,
+              maxHeight: MediaQuery.of(context).size.height * 0.8,
             ),
-            const SizedBox(height: 24),
-
-            // Form
-            Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  // Name field
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: 'Name *',
-                      hintText: 'Enter full name',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      prefixIcon: const Icon(Icons.person),
-                    ),
-                    keyboardType: TextInputType.name,
-                    textCapitalization: TextCapitalization.words,
-                    onChanged: (value) {
-                      setState(() {}); // Update Save button state
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Contact number field
-                  TextFormField(
-                    controller: _numberController,
-                    decoration: InputDecoration(
-                      labelText: 'Contact Number *',
-                      hintText: 'Enter 10-digit number',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      prefixIcon: const Icon(Icons.phone),
-                    ),
-                    keyboardType: TextInputType.number,
-                    maxLength: 10,
-                    onChanged: (value) {
-                      setState(() {}); // Update Save button state
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Action buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            padding: EdgeInsets.all(isLargeScreen ? 32 : 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Cancel button
-                TextButton(
-                  onPressed:
-                      _isLoading ? null : () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
+                // Title
+                Text(
+                  _isEditing ? 'Edit Contact' : 'Create New Contact',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(width: 12),
+                SizedBox(height: isLargeScreen ? 32 : 24),
 
-                // Save button
-                ElevatedButton(
-                  onPressed: (_isLoading || !_hasInput) ? null : _saveContact,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                // Form
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          // Name field
+                          TextFormField(
+                            controller: _nameController,
+                            decoration: InputDecoration(
+                              labelText: 'Name *',
+                              hintText: 'Enter full name',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              prefixIcon: const Icon(Icons.person),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: isLargeScreen ? 16 : 14,
+                              ),
+                            ),
+                            keyboardType: TextInputType.name,
+                            textCapitalization: TextCapitalization.words,
+                            onChanged: (value) {
+                              setState(() {}); // Update Save button state
+                            },
+                          ),
+                          SizedBox(height: isLargeScreen ? 20 : 16),
+
+                          // Contact number field
+                          TextFormField(
+                            controller: _numberController,
+                            decoration: InputDecoration(
+                              labelText: 'Contact Number *',
+                              hintText: 'Enter 10-digit number',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              prefixIcon: const Icon(Icons.phone),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: isLargeScreen ? 16 : 14,
+                              ),
+                            ),
+                            keyboardType: TextInputType.number,
+                            maxLength: 10,
+                            onChanged: (value) {
+                              setState(() {}); // Update Save button state
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(_isEditing ? 'Update' : 'Save'),
+                ),
+
+                SizedBox(height: isLargeScreen ? 32 : 24),
+
+                // Action buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    // Cancel button
+                    TextButton(
+                      onPressed:
+                          _isLoading ? null : () => Navigator.of(context).pop(),
+                      child: const Text('Cancel'),
+                    ),
+                    SizedBox(width: isLargeScreen ? 16 : 12),
+
+                    // Save button
+                    ElevatedButton(
+                      onPressed:
+                          (_isLoading || !_hasInput) ? null : _saveContact,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isLargeScreen ? 24 : 20,
+                          vertical: isLargeScreen ? 14 : 12,
+                        ),
+                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(_isEditing ? 'Update' : 'Save'),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

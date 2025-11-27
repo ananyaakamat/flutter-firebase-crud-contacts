@@ -84,141 +84,193 @@ class ContactTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      child: Column(
-        children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
-            ),
-            child: Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Use full available width for better responsiveness
+        final availableWidth = constraints.maxWidth;
+        final isLargeScreen = availableWidth > 800;
+        final isVeryWide = availableWidth > 1000;
+        final padding = isLargeScreen ? 24.0 : 16.0;
+        final cardMargin = isLargeScreen ? 32.0 : 8.0;
+
+        return Container(
+          width: double.infinity,
+          margin: EdgeInsets.symmetric(horizontal: cardMargin, vertical: 8),
+          child: Card(
+            elevation: 2,
+            child: Column(
               children: [
-                Icon(
-                  Icons.contacts,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Contacts (${contacts.length})',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                // Header
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(padding),
+                  decoration: BoxDecoration(
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.contacts,
                         color: Theme.of(context).colorScheme.primary,
                       ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Contacts (${contacts.length})',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Scrollable table content
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minWidth: availableWidth - (cardMargin * 2),
+                          ),
+                          child: DataTable(
+                            headingRowHeight: 60,
+                            dataRowMinHeight: 60,
+                            dataRowMaxHeight: 60,
+                            columnSpacing: isLargeScreen ? 48 : 24,
+                            headingTextStyle: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                            columns: const [
+                              DataColumn(
+                                label: Text('Name'),
+                                tooltip: 'Contact name',
+                              ),
+                              DataColumn(
+                                label: Text('Contact Number'),
+                                tooltip: 'Phone number',
+                              ),
+                              DataColumn(
+                                label: Text('Created At'),
+                                tooltip: 'Date created',
+                              ),
+                              DataColumn(
+                                label: Text('Actions'),
+                                tooltip: 'Edit or delete contact',
+                              ),
+                            ],
+                            rows: contacts
+                                .map((contact) => DataRow(
+                                      cells: [
+                                        DataCell(
+                                          ConstrainedBox(
+                                            constraints: BoxConstraints(
+                                              maxWidth: isVeryWide ? 200 : 150,
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    contact.name,
+                                                    style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w500),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                                if (contact.pending)
+                                                  Tooltip(
+                                                    message:
+                                                        'Syncing changes...',
+                                                    child: Icon(
+                                                      Icons.sync,
+                                                      size: 16,
+                                                      color: Colors
+                                                          .orange.shade600,
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        DataCell(
+                                          ConstrainedBox(
+                                            constraints: BoxConstraints(
+                                              maxWidth: isVeryWide ? 150 : 120,
+                                            ),
+                                            child: Text(
+                                              contact.contactNumber,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ),
+                                        DataCell(
+                                          ConstrainedBox(
+                                            constraints: BoxConstraints(
+                                              maxWidth: isVeryWide ? 120 : 100,
+                                            ),
+                                            child: Text(
+                                              DateFormat('MMM dd, yyyy')
+                                                  .format(contact.createdAt),
+                                              style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface
+                                                    .withOpacity(0.7),
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ),
+                                        DataCell(
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              IconButton(
+                                                icon: const Icon(Icons.edit),
+                                                onPressed: () => _editContact(
+                                                    context, contact),
+                                                tooltip: 'Edit contact',
+                                              ),
+                                              IconButton(
+                                                icon: Icon(
+                                                  Icons.delete,
+                                                  color: Colors.red[700],
+                                                ),
+                                                onPressed: () => _deleteContact(
+                                                    context, contact),
+                                                tooltip: 'Delete contact',
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ))
+                                .toList(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-          // Scrollable table content
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  headingRowHeight: 60,
-                  dataRowMinHeight: 60,
-                  dataRowMaxHeight: 60,
-                  columnSpacing: 24,
-                  headingTextStyle:
-                      Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                  columns: const [
-                    DataColumn(
-                      label: Text('Name'),
-                      tooltip: 'Contact name',
-                    ),
-                    DataColumn(
-                      label: Text('Contact Number'),
-                      tooltip: 'Phone number',
-                    ),
-                    DataColumn(
-                      label: Text('Created At'),
-                      tooltip: 'Date created',
-                    ),
-                    DataColumn(
-                      label: Text('Actions'),
-                      tooltip: 'Edit or delete contact',
-                    ),
-                  ],
-                  rows: contacts
-                      .map((contact) => DataRow(
-                            cells: [
-                              DataCell(
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        contact.name,
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.w500),
-                                      ),
-                                    ),
-                                    if (contact.pending)
-                                      Tooltip(
-                                        message: 'Syncing changes...',
-                                        child: Icon(
-                                          Icons.sync,
-                                          size: 16,
-                                          color: Colors.orange.shade600,
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                              DataCell(
-                                Text(contact.contactNumber),
-                              ),
-                              DataCell(
-                                Text(
-                                  DateFormat('MMM dd, yyyy')
-                                      .format(contact.createdAt),
-                                  style: TextStyle(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface
-                                        .withOpacity(0.7),
-                                  ),
-                                ),
-                              ),
-                              DataCell(
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit),
-                                      onPressed: () =>
-                                          _editContact(context, contact),
-                                      tooltip: 'Edit contact',
-                                    ),
-                                    IconButton(
-                                      icon: Icon(
-                                        Icons.delete,
-                                        color: Colors.red[700],
-                                      ),
-                                      onPressed: () =>
-                                          _deleteContact(context, contact),
-                                      tooltip: 'Delete contact',
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ))
-                      .toList(),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -242,12 +294,24 @@ class ContactList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: contacts.length,
-      padding: const EdgeInsets.all(8),
-      itemBuilder: (context, index) {
-        final contact = contacts[index];
-        return ContactCard(contact: contact);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Responsive padding based on screen width
+        final isTablet =
+            constraints.maxWidth > 600 && constraints.maxWidth <= 900;
+        final horizontalPadding = isTablet ? 24.0 : 8.0;
+
+        return ListView.builder(
+          itemCount: contacts.length,
+          padding: EdgeInsets.symmetric(
+            horizontal: horizontalPadding,
+            vertical: 8,
+          ),
+          itemBuilder: (context, index) {
+            final contact = contacts[index];
+            return ContactCard(contact: contact, isTabletView: isTablet);
+          },
+        );
       },
     );
   }
@@ -256,16 +320,27 @@ class ContactList extends StatelessWidget {
 // Contact card for mobile view
 class ContactCard extends StatelessWidget {
   final Contact contact;
+  final bool isTabletView;
 
-  const ContactCard({super.key, required this.contact});
+  const ContactCard({
+    super.key,
+    required this.contact,
+    this.isTabletView = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      margin: EdgeInsets.symmetric(
+        vertical: 4,
+        horizontal: isTabletView ? 16 : 8,
+      ),
       elevation: 2,
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: isTabletView ? 24 : 16,
+          vertical: isTabletView ? 12 : 8,
+        ),
         leading: Stack(
           children: [
             CircleAvatar(

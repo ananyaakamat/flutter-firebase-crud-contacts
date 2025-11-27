@@ -52,47 +52,64 @@ class _SearchWidgetState extends State<SearchWidget> {
           return const SizedBox.shrink();
         }
 
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: TextField(
-            controller: _searchController,
-            focusNode: _focusNode,
-            onChanged: _onSearchChanged,
-            decoration: InputDecoration(
-              hintText: 'Search by name or contact number',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: _clearSearch,
-                      tooltip: 'Clear search',
-                    )
-                  : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Theme.of(context).colorScheme.outline,
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            // Responsive layout for search widget
+            final isLargeScreen = constraints.maxWidth > 800;
+            final maxWidth = isLargeScreen ? 600.0 : constraints.maxWidth;
+            final horizontalMargin =
+                isLargeScreen ? (constraints.maxWidth - maxWidth) / 2 : 16.0;
+
+            return Container(
+              margin: EdgeInsets.symmetric(
+                horizontal: horizontalMargin,
+                vertical: 8,
+              ),
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: TextField(
+                controller: _searchController,
+                focusNode: _focusNode,
+                onChanged: _onSearchChanged,
+                decoration: InputDecoration(
+                  hintText: 'Search by name or contact number',
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: _clearSearch,
+                          tooltip: 'Clear search',
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .outline
+                          .withOpacity(0.5),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).primaryColor,
+                      width: 2,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                 ),
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Theme.of(context).primaryColor,
-                  width: 2,
-                ),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -114,38 +131,53 @@ class SearchResultsHeader extends StatelessWidget {
         final resultCount = provider.contacts.length;
         final totalCount = provider.allContacts.length;
 
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest
-                .withOpacity(0.5),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.search,
-                size: 20,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            // Responsive layout for search results header
+            final isLargeScreen = constraints.maxWidth > 800;
+            final maxWidth = isLargeScreen ? 600.0 : constraints.maxWidth;
+            final horizontalMargin =
+                isLargeScreen ? (constraints.maxWidth - maxWidth) / 2 : 16.0;
+
+            return Container(
+              margin: EdgeInsets.symmetric(
+                horizontal: horizontalMargin,
+                vertical: 8,
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Found $resultCount of $totalCount contacts for "${provider.searchQuery}"',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                ),
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest
+                    .withOpacity(0.5),
+                borderRadius: BorderRadius.circular(8),
               ),
-              TextButton(
-                onPressed: () => provider.clearSearch(),
-                child: const Text('Clear'),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.search,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Found $resultCount of $totalCount contacts for "${provider.searchQuery}"',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => provider.clearSearch(),
+                    child: const Text('Clear'),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
